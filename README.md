@@ -7,7 +7,6 @@ This MCP (Model Context Protocol) server provides an interface to AWS Bedrock's 
 - **Discover Prompts**: Find and explore all available prompts in your AWS Bedrock account
 - **Create Prompts**: Create new prompts with variables, system instructions, and tool configurations
 - **Update Prompts**: Modify existing prompts and create new versions
-- **Execute Prompts**: Run prompts directly using the Amazon Bedrock runtime
 - **Prompt Variants**: Create and test prompt variants to compare different approaches
 
 ### AWS Requirements
@@ -74,4 +73,4 @@ To develop this MCP server:
 2. Create a virtual environment: `python venv venv`
                             `source venv/bin/activate`
 3. Install dependencies: `pip install -e .`
-4. Run the server with SSE: `./run.sh --sse
+4. Run the server with SSE: `./run.sh --sse`
