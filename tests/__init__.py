@@ -1,0 +1,1 @@
+"""Tests for the Bedrock Prompt Management MCP Server.""" 

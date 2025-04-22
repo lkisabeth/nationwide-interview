@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bedrock-prompt-management-mcp-server"
+description = "MCP server for accessing Amazon Bedrock Prompt Management"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+keywords = ["AWS", "Bedrock", "Prompt Management", "MCP", "generative ai"]
+authors = [
+    {name = "Lucas Kisabeth", email = "lucaskisabeth@gmail.com"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "boto3",
+    "mcp",
+    "fastmcp",
+    "pydantic",
+    "loguru",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "mypy",
+    "black",
+    "isort",
+    "ruff",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/LucasKisabeth/bedrock-prompt-management-mcp-server"
+"Bug Tracker" = "https://github.com/LucasKisabeth/bedrock-prompt-management-mcp-server/issues"
+
+[project.scripts]
+"bedrock-prompt-management-mcp-server" = "bedrock_prompt_management_mcp_server.server:main"
+
+[tool.hatch.version]
+path = "bedrock_prompt_management_mcp_server/__init__.py" 
