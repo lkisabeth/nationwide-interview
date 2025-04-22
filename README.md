@@ -10,13 +10,6 @@ This MCP (Model Context Protocol) server provides an interface to AWS Bedrock's 
 - **Execute Prompts**: Run prompts directly using the Amazon Bedrock runtime
 - **Prompt Variants**: Create and test prompt variants to compare different approaches
 
-## Prerequisites
-
-### Installation Requirements
-
-1. Install `uv` from [Astral](https://docs.astral.sh/uv/getting-started/installation/) or the [GitHub README](https://github.com/astral-sh/uv#installation)
-2. Install Python using `uv python install 3.10`
-
 ### AWS Requirements
 
 1. **AWS CLI Configuration**: You must have the AWS CLI configured with credentials and an AWS_PROFILE that has access to Amazon Bedrock and Prompt Management
@@ -28,24 +21,17 @@ This MCP (Model Context Protocol) server provides an interface to AWS Bedrock's 
 
 ## Installation
 
-To install this MCP server, run:
-
-```bash
-uv pip install -e .
-```
-
 You can add this MCP server to your MCP configuration file (e.g. for Amazon Q Developer CLI MCP, `~/.aws/amazonq/mcp.json`):
+(I tested with Cursor and SSE)
 
 ```json
 {
   "mcpServers": {
-    "bedrock-prompt-management-mcp-server": {
-      "command": "uvx",
-      "args": ["bedrock-prompt-management-mcp-server@latest"],
+    "bedrock_prompt_management_mcp_server": {
+      "url": "http://127.0.0.1:8888/sse",
       "env": {
         "AWS_PROFILE": "your-profile-name",
-        "AWS_REGION": "us-east-1",
-        "FASTMCP_LOG_LEVEL": "ERROR"
+        "AWS_REGION": "us-east-1"
       },
       "disabled": false,
       "autoApprove": []
@@ -62,8 +48,7 @@ This MCP server exposes the following tools:
 2. `GetPrompt` - Gets a specific prompt by ID
 3. `CreatePrompt` - Creates a new prompt with specified configuration
 4. `UpdatePrompt` - Updates an existing prompt
-5. `ExecutePrompt` - Executes a prompt with variables and returns the model output
-6. `CreatePromptVersion` - Creates a new version of an existing prompt
+5. `CreatePromptVersion` - Creates a new version of an existing prompt
 
 ## Example
 
@@ -77,9 +62,6 @@ Tool use: GetPrompt with these inputs: promptId["my-prompt-id"]
 # Create a new prompt
 Tool use: CreatePrompt with these inputs: name["Product description generator"] description["Generates product descriptions based on key features"] modelId["anthropic.claude-3-sonnet-20240229-v1:0"] promptText["You are a product description writer. Write a compelling description for a product with these features: {{features}}"] variables[["features"]]
 
-# Execute a prompt
-Tool use: ExecutePrompt with these inputs: promptId["my-prompt-id"] variables[{"features": "Waterproof, lightweight, durable hiking boots with Gore-Tex lining"}]
-
 # Create a new version of a prompt
 Tool use: CreatePromptVersion with these inputs: promptId["my-prompt-id"] description["Updated version with better system instructions"]
 ```
@@ -89,6 +71,7 @@ Tool use: CreatePromptVersion with these inputs: promptId["my-prompt-id"] descri
 To develop this MCP server:
 
 1. Clone the repository
-2. Create a virtual environment: `uv venv`
-3. Install dev dependencies: `uv pip install -e ".[dev]"`
-4. Run the server locally: `python -m bedrock_prompt_management_mcp_server.server` 
+2. Create a virtual environment: `python venv venv`
+                            `source venv/bin/activate`
+3. Install dependencies: `pip install -e .`
+4. Run the server with SSE: `./run.sh --sse
