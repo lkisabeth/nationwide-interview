@@ -163,13 +163,13 @@ class TestCreatePromptTool:
         with patch("bedrock_prompt_management_mcp_server.server.prompt_client") as mock_client:
             mock_client.bedrock_client.create_prompt.return_value = mock_response
             
-            # Call the function
             result = await create_prompt_tool(
                 name="Test Prompt",
                 template_type="TEXT",
-                description="A test prompt",
-                model_id="anthropic.claude-3-sonnet-20240229-v1:0",
-                text_template="This is a test prompt with {{variable}}"
+                template_text="This is a test prompt with {{variable}}",
+                input_variable_names=["variable"],
+                prompt_description="A test prompt",
+                model_id="anthropic.claude-3-sonnet-20240229-v1:0"
             )
             
             # Check the result
@@ -198,12 +198,12 @@ class TestCreatePromptTool:
         with patch("bedrock_prompt_management_mcp_server.server.prompt_client") as mock_client:
             mock_client.bedrock_client.create_prompt.return_value = mock_response
             
-            # Call the function
             result = await create_prompt_tool(
                 name="Test Chat Prompt",
                 template_type="CHAT",
+                template_text="You are a helpful assistant",
+                input_variable_names=["query"],
                 model_id="anthropic.claude-3-sonnet-20240229-v1:0",
-                system_prompt="You are a helpful assistant",
                 chat_messages=[
                     {"role": "user", "content": "Hello, how can you help me?"},
                     {"role": "assistant", "content": "I can help answer your questions."}
@@ -234,18 +234,15 @@ class TestCreatePromptTool:
         with patch("bedrock_prompt_management_mcp_server.server.prompt_client") as mock_client:
             mock_client.bedrock_client.create_prompt.return_value = mock_response
             
-            # Call the function
             result = await create_prompt_tool(
                 name="Test Prompt",
                 template_type="TEXT",
-                description="A test prompt",
+                template_text="This is a test prompt with {{variable}}",
+                input_variable_names=["variable"],
+                prompt_description="A test prompt",
                 model_id="anthropic.claude-3-sonnet-20240229-v1:0",
-                text_template="This is a test prompt with {{variable}}",
-                inference_configuration={
-                    "temperature": 0.7,
-                    "topP": 0.9,
-                    "maxTokens": 1000
-                },
+                temperature=0.7,
+                max_tokens=1000,
                 client_token="token123",
                 customer_encryption_key_arn="arn:aws:kms:us-west-2:123456789012:key/abcdef",
                 default_variant="custom",
@@ -268,7 +265,6 @@ class TestCreatePromptTool:
             variant = call_args["variants"][0]
             assert "inferenceConfiguration" in variant
             assert variant["inferenceConfiguration"]["text"]["temperature"] == 0.7
-            assert variant["inferenceConfiguration"]["text"]["topP"] == 0.9
             assert variant["inferenceConfiguration"]["text"]["maxTokens"] == 1000
     
     @pytest.mark.asyncio
@@ -278,11 +274,11 @@ class TestCreatePromptTool:
         with patch("bedrock_prompt_management_mcp_server.server.prompt_client") as mock_client:
             mock_client.bedrock_client.create_prompt.side_effect = Exception("Test error")
             
-            # Call the function
             result = await create_prompt_tool(
                 name="Test Prompt",
                 template_type="TEXT",
-                text_template="This is a test prompt with {{variable}}",
+                template_text="This is a test prompt with {{variable}}",
+                input_variable_names=["variable"],
                 model_id="anthropic.claude-3-sonnet-20240229-v1:0"
             )
             
@@ -345,11 +341,10 @@ class TestUpdatePromptTool:
             }
         ]
         
-        # Call the function
         result = await update_prompt_tool(
             prompt_id="prompt-12345",
             name="Updated Prompt",
-            description="Updated description",
+            prompt_description="Updated description",
             default_variant="default",
             customer_encryption_key_arn="arn:aws:kms:us-west-2:123456789012:key/abcdef",
             variants=variants

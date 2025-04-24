@@ -35,7 +35,7 @@ mcp = FastMCP(
     instructions="""
     The AWS Bedrock Prompt Management MCP Server provides access to Amazon Bedrock's Prompt Management capabilities, allowing you to create, discover, and manage prompts.
 
-    ## Usage Workflow:
+    ## Usage:
     1. Use the `ListPrompts` tool to discover available prompts
     2. Use `GetPrompt` to retrieve detailed information about a specific prompt
     3. Use `CreatePrompt` to create new prompts with customized templates
@@ -45,8 +45,6 @@ mcp = FastMCP(
 
     ## Important Notes:
     - Prompt variables must be specified in template text using {{variable_name}} syntax
-    - When updating prompts, the name parameter is required by the API even if unchanged
-    - CreatePromptVersion creates a permanent snapshot of a prompt that can be deployed
     """,
     dependencies=["boto3"],
 )
@@ -161,12 +159,10 @@ async def get_prompt_tool(
     """
     try:
         # Build request parameters with a dictionary comprehension that filters out None values
-        params = {
+        params = {k: v for k, v in {
             "promptIdentifier": prompt_id,
             "promptVersion": prompt_version
-        }
-        # Remove None values from the dictionary
-        params = {k: v for k, v in params.items() if v is not None}
+        }.items() if v is not None}
         
         # Call the get_prompt API
         response = prompt_client.bedrock_client.get_prompt(**params)
@@ -259,33 +255,24 @@ async def create_prompt_tool(
     including its ID, ARN, and variant information.
     """
     try:
-        # Build the base request body
-        request_body = {
+        # Build the base request body with required and optional parameters
+        request_body = {k: v for k, v in {
             "name": name,
             "defaultVariant": default_variant,
-        }
-        
-        # Add optional parameters
-        if prompt_description is not None:
-            request_body["description"] = prompt_description
-        if client_token is not None:
-            request_body["clientToken"] = client_token
-        if customer_encryption_key_arn is not None:
-            request_body["customerEncryptionKeyArn"] = customer_encryption_key_arn
-        if tags is not None:
-            request_body["tags"] = tags
+            "description": prompt_description,
+            "clientToken": client_token,
+            "customerEncryptionKeyArn": customer_encryption_key_arn,
+            "tags": tags
+        }.items() if v is not None}
         
         # Format input variables
         formatted_input_vars = [{"name": var_name} for var_name in input_variable_names]
         
         # Create inference configuration if temperature or max_tokens are provided
-        inference_config = None
-        if temperature is not None or max_tokens is not None:
-            inference_config = {}
-            if temperature is not None:
-                inference_config["temperature"] = temperature
-            if max_tokens is not None:
-                inference_config["maxTokens"] = max_tokens
+        inference_config = {k: v for k, v in {
+            "temperature": temperature,
+            "maxTokens": max_tokens
+        }.items() if v is not None}
         
         # Create the variant object
         variant = {
@@ -298,7 +285,7 @@ async def create_prompt_tool(
             variant["modelId"] = model_id
             
         # Add inference configuration if provided
-        if inference_config is not None:
+        if inference_config:
             variant["inferenceConfiguration"] = {"text": inference_config}
             
         # Create template configuration based on type
@@ -317,7 +304,7 @@ async def create_prompt_tool(
             }
             
             # Add chat messages if provided
-            if chat_messages is not None and len(chat_messages) > 0:
+            if chat_messages and len(chat_messages) > 0:
                 formatted_messages = []
                 for msg in chat_messages:
                     formatted_messages.append({
@@ -403,21 +390,15 @@ async def update_prompt_tool(
     - Only the DRAFT version can be updated (use CreatePromptVersion for versioning)
     """
     try:
-        # Build the base request body with required parameters
-        request_body = {
+        # Build the request body with required parameters and filter out None values from optional ones
+        request_body = {k: v for k, v in {
             "promptIdentifier": prompt_id,
             "name": name,
-        }
-        
-        # Add optional parameters if provided
-        if default_variant is not None:
-            request_body["defaultVariant"] = default_variant
-        if prompt_description is not None:
-            request_body["description"] = prompt_description
-        if customer_encryption_key_arn is not None:
-            request_body["customerEncryptionKeyArn"] = customer_encryption_key_arn
-        if variants is not None:
-            request_body["variants"] = variants
+            "defaultVariant": default_variant,
+            "description": prompt_description,
+            "customerEncryptionKeyArn": customer_encryption_key_arn,
+            "variants": variants
+        }.items() if v is not None}
         
         # Update the prompt
         response = prompt_client.bedrock_client.update_prompt(**request_body)
@@ -471,14 +452,12 @@ async def create_prompt_version_tool(
     """
     try:
         # Build request body with required parameters and filter out None values from optional ones
-        request_body = {
+        request_body = {k: v for k, v in {
             "promptIdentifier": prompt_id,
-            **{k: v for k, v in {
-                "description": description,
-                "clientToken": client_token,
-                "tags": tags
-            }.items() if v is not None}
-        }
+            "description": description,
+            "clientToken": client_token,
+            "tags": tags
+        }.items() if v is not None}
         
         # Create the prompt version
         response = prompt_client.bedrock_client.create_prompt_version(**request_body)
@@ -514,13 +493,13 @@ async def delete_prompt_tool(
     The response is a JSON object containing the ID and version of the deleted prompt.
     """
     try:
-        # Build request parameters as a proper dictionary
-        # Explicitly convert to native types to avoid Field objects being passed
-        params = {"promptIdentifier": str(prompt_id)}
-        if prompt_version is not None:
-            params["promptVersion"] = str(prompt_version)
+        # Build request parameters and filter out None values
+        params = {k: v for k, v in {
+            "promptIdentifier": prompt_id,
+            "promptVersion": prompt_version
+        }.items() if v is not None}
         
-        # Call the delete_prompt API with only the required parameters
+        # Call the delete_prompt API
         response = prompt_client.bedrock_client.delete_prompt(**params)
         
         return json.dumps(response, default=str)
