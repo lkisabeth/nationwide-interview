@@ -255,80 +255,60 @@ async def create_prompt_tool(
     including its ID, ARN, and variant information.
     """
     try:
-        # Build the base request body with required and optional parameters
+        # Format input variables
+        formatted_input_vars = [{"name": var_name} for var_name in input_variable_names]
+        
+        # Create the variant with conditional components
+        variant = {
+            "name": default_variant,
+            "templateType": template_type,
+            **({} if model_id is None else {"modelId": model_id}),
+            # Add inference configuration if temperature or max_tokens are provided
+            **({} if not any([temperature, max_tokens]) else {
+                "inferenceConfiguration": {
+                    "text": {k: v for k, v in {
+                        "temperature": temperature,
+                        "maxTokens": max_tokens
+                    }.items() if v is not None}
+                }
+            }),
+            # Create template configuration based on type
+            "templateConfiguration": (
+                # TEXT template configuration
+                {"text": {
+                    "text": template_text,
+                    "inputVariables": formatted_input_vars
+                }} if template_type == "TEXT" else
+                # CHAT template configuration
+                {"chat": {
+                    "system": [{"text": template_text}],
+                    "inputVariables": formatted_input_vars,
+                    "messages": (
+                        # Format provided chat messages if any
+                        [{
+                            "role": msg["role"],
+                            "content": [{"text": msg["content"]}]
+                        } for msg in chat_messages] if chat_messages and len(chat_messages) > 0 else
+                        # Default messages if none provided
+                        [
+                            {"role": "user", "content": [{"text": "Hello"}]},
+                            {"role": "assistant", "content": [{"text": "How can I help you today?"}]}
+                        ]
+                    )
+                }}
+            )
+        }
+        
+        # Build the complete request body
         request_body = {k: v for k, v in {
             "name": name,
             "defaultVariant": default_variant,
             "description": prompt_description,
             "clientToken": client_token,
             "customerEncryptionKeyArn": customer_encryption_key_arn,
-            "tags": tags
+            "tags": tags,
+            "variants": [variant]
         }.items() if v is not None}
-        
-        # Format input variables
-        formatted_input_vars = [{"name": var_name} for var_name in input_variable_names]
-        
-        # Create inference configuration if temperature or max_tokens are provided
-        inference_config = {k: v for k, v in {
-            "temperature": temperature,
-            "maxTokens": max_tokens
-        }.items() if v is not None}
-        
-        # Create the variant object
-        variant = {
-            "name": default_variant,
-            "templateType": template_type,
-        }
-        
-        # Add model ID if provided
-        if model_id is not None:
-            variant["modelId"] = model_id
-            
-        # Add inference configuration if provided
-        if inference_config:
-            variant["inferenceConfiguration"] = {"text": inference_config}
-            
-        # Create template configuration based on type
-        if template_type == "TEXT":
-            variant["templateConfiguration"] = {
-                "text": {
-                    "text": template_text,
-                    "inputVariables": formatted_input_vars
-                }
-            }
-                
-        elif template_type == "CHAT":
-            chat_config = {
-                "system": [{"text": template_text}],
-                "inputVariables": formatted_input_vars
-            }
-            
-            # Add chat messages if provided
-            if chat_messages and len(chat_messages) > 0:
-                formatted_messages = []
-                for msg in chat_messages:
-                    formatted_messages.append({
-                        "role": msg["role"],
-                        "content": [{"text": msg["content"]}]
-                    })
-                chat_config["messages"] = formatted_messages
-            else:
-                # Default messages if none provided
-                chat_config["messages"] = [
-                    {
-                        "role": "user", 
-                        "content": [{"text": "Hello"}]
-                    },
-                    {
-                        "role": "assistant",
-                        "content": [{"text": "How can I help you today?"}]
-                    }
-                ]
-                
-            variant["templateConfiguration"] = {"chat": chat_config}
-        
-        # Add the variant to the request body
-        request_body["variants"] = [variant]
 
         response = prompt_client.bedrock_client.create_prompt(**request_body)
         return json.dumps(response, default=str)
