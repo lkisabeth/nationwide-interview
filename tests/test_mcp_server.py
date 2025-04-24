@@ -27,7 +27,7 @@ class TestMCPServer:
         # by checking the tool names in the available tools from get_tools()
         tools = await mcp.get_tools()
         
-        expected_tools = ["ListPrompts", "GetPrompt", "CreatePrompt", "UpdatePrompt", "CreatePromptVersion"]
+        expected_tools = ["ListPrompts", "GetPrompt", "CreatePrompt", "UpdatePrompt", "CreatePromptVersion", "DeletePrompt"]
         
         # Verify all expected tools are registered
         for tool in expected_tools:
